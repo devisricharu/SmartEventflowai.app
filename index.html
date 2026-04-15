@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --neon:#00f5ff;--neon2:#7c3aed;--neon3:#f97316;--neon4:#10b981;
+    --bg:#020817;--bg2:#0a1628;--bg3:#0f2040;--bg4:#162035;
+    --glass:rgba(0,245,255,0.05);--glass2:rgba(124,58,237,0.08);
+    --border:rgba(0,245,255,0.15);--border2:rgba(124,58,237,0.2);
+    --text:#e2f0ff;--text2:#8ba3c7;--danger:#ef4444;--warn:#f97316;--ok:#10b981;
+  }
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;min-height:100vh}
+  
+  /* NAV */
+  .nav{position:sticky;top:0;z-index:100;background:rgba(2,8,23,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;gap:4px;height:52px;overflow-x:auto}
+  .nav-brand{font-size:13px;font-weight:700;color:var(--neon);letter-spacing:1px;white-space:nowrap;margin-right:12px;text-shadow:0 0 8px rgba(0,245,255,0.4)}
+  .nav-btn{padding:6px 12px;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--text2);font-size:11px;cursor:pointer;white-space:nowrap;transition:all .2s;font-family:inherit;letter-spacing:.5px}
+  .nav-btn:hover{color:var(--neon);border-color:var(--border)}
+  .nav-btn.active{background:rgba(0,245,255,0.08);color:var(--neon);border-color:var(--border)}
+  .nav-status{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ok)}
+  .pulse{width:6px;height:6px;border-radius:50%;background:var(--ok);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(16,185,129,.5)}50%{opacity:.7;box-shadow:0 0 0 4px transparent}}
+  
+  /* PAGES */
+  .page{display:none;padding:16px;animation:fadeIn .3s ease}
+  .page.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  
+  /* CARDS */
+  .card{background:var(--glass);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;position:relative;overflow:hidden}
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--neon),transparent);opacity:.4}
+  .card-title{font-size:11px;letter-spacing:1px;color:var(--neon);text-transform:uppercase;margin-bottom:12px;font-weight:600}
+  
+  /* GRID */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  @media(max-width:600px){.grid2,.grid3,.grid4{grid-template-columns:1fr 1fr}.grid4{grid-template-columns:1fr 1fr}}
+  @media(max-width:400px){.grid2,.grid3,.grid4{grid-template-columns:1fr}}
+  
+  /* METRIC */
+  .metric{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+  .metric-val{font-size:22px;font-weight:700;color:var(--neon);font-variant-numeric:tabular-nums}
+  .metric-label{font-size:10px;color:var(--text2);margin-top:2px;letter-spacing:.5px}
+  .metric-trend{font-size:10px;margin-top:4px}
+  .up{color:var(--ok)}.down{color:var(--danger)}.warn{color:var(--warn)}
+  
+  /* BADGE */
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.5px}
+  .badge-ok{background:rgba(16,185,129,.15);color:var(--ok);border:1px solid rgba(16,185,129,.3)}
+  .badge-warn{background:rgba(249,115,22,.15);color:var(--warn);border:1px solid rgba(249,115,22,.3)}
+  .badge-danger{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3)}
+  .badge-info{background:rgba(0,245,255,.1);color:var(--neon);border:1px solid var(--border)}
+  
+  /* ZONE MAP */
+  .zone-map{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:8px}
+  .zone{height:44px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;cursor:pointer;transition:all .3s;position:relative;border:1px solid transparent}
+  .zone:hover{transform:scale(1.05);filter:brightness(1.2)}
+  .zone-label{font-size:9px;color:rgba(255,255,255,.7)}
+  
+  /* BUTTONS */
+  .btn{padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--glass);color:var(--neon);font-size:11px;cursor:pointer;transition:all .2s;font-family:inherit;font-weight:600;letter-spacing:.5px}
+  .btn:hover{background:rgba(0,245,255,.12);border-color:var(--neon);box-shadow:0 0 10px rgba(0,245,255,.2)}
+  .btn:active{transform:scale(.97)}
+  .btn-danger{border-color:rgba(239,68,68,.4);color:var(--danger)}
+  .btn-danger:hover{background:rgba(239,68,68,.1);border-color:var(--danger)}
+  .btn-ok{border-color:rgba(16,185,129,.4);color:var(--ok)}
+  .btn-ok:hover{background:rgba(16,185,129,.1);border-color:var(--ok)}
+  .btn-warn{border-color:rgba(249,115,22,.4);color:var(--warn)}
+  .btn-warn:hover{background:rgba(249,115,22,.1);border-color:var(--warn)}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  
+  /* AI LOG */
+  .ai-log{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:10px;max-height:160px;overflow-y:auto;font-size:11px;line-height:1.7}
+  .ai-log-entry{display:flex;gap:8px;margin-bottom:4px;animation:fadeIn .3s ease}
+  .ai-log-time{color:var(--neon);opacity:.6;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .ai-log-msg{color:var(--text2)}
+  .ai-log-msg span{color:var(--text)}
+  
+  /* HEATMAP */
+  .heatmap{display:grid;grid-template-columns:repeat(10,1fr);gap:2px}
+  .heat-cell{height:22px;border-radius:3px;transition:all .5s;cursor:pointer}
+  .heat-cell:hover{transform:scale(1.1)}
+  
+  /* CHART wrapper */
+  .chart-wrap{position:relative;height:160px;width:100%}
+  
+  /* EMOTION */
+  .emotion-bar{height:8px;border-radius:4px;margin:4px 0;transition:width .8s ease;min-width:4px}
+  .emotion-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px}
+  .emotion-name{width:60px;color:var(--text2)}
+  .emotion-track{flex:1;background:rgba(255,255,255,.05);border-radius:4px;height:8px;overflow:hidden}
+  .emotion-val{width:30px;text-align:right;font-size:10px;color:var(--text2)}
+  
+  /* DRONE */
+  .drone-view{background:var(--bg2);border:1px solid var(--border);border-radius:8px;position:relative;height:200px;overflow:hidden}
+  .drone-bg{position:absolute;inset:0;display:grid;grid-template-columns:repeat(10,1fr);grid-template-rows:repeat(5,1fr);gap:1px;padding:4px}
+  .drone-cell{border-radius:2px;transition:all 1s}
+  
+  /* ALERT */
+  .alert{border:1px solid;border-radius:10px;padding:12px;margin-bottom:8px;animation:fadeIn .3s ease}
+  .alert-danger{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3)}
+  .alert-warn{background:rgba(249,115,22,.08);border-color:rgba(249,115,22,.3)}
+  .alert-info{background:rgba(0,245,255,.05);border-color:var(--border)}
+  .alert-ok{background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.3)}
+  .alert-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .alert-title{font-size:12px;font-weight:700}
+  .alert-body{font-size:11px;color:var(--text2);line-height:1.6}
+  
+  /* CHAT */
+  .chat-area{background:var(--bg2);border:1px solid var(--border);border-radius:8px;height:240px;overflow-y:auto;padding:12px;margin-bottom:8px;display:flex;flex-direction:column;gap:8px}
+  .chat-msg{max-width:85%;padding:8px 12px;border-radius:8px;font-size:12px;line-height:1.6;animation:fadeIn .3s ease}
+  .chat-user{align-self:flex-end;background:rgba(124,58,237,.2);border:1px solid var(--border2);color:var(--text)}
+  .chat-ai{align-self:flex-start;background:var(--glass);border:1px solid var(--border);color:var(--text)}
+  .chat-ai-name{font-size:10px;color:var(--neon);margin-bottom:4px;font-weight:600}
+  .chat-input-row{display:flex;gap:8px}
+  .chat-input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:12px;font-family:inherit;outline:none}
+  .chat-input:focus{border-color:var(--neon)}
+  
+  /* BLOCKCHAIN */
+  .bc-list{display:flex;flex-direction:column;gap:4px;max-height:140px;overflow-y:auto}
+  .bc-item{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px}
+  .bc-hash{font-family:monospace;font-size:10px;color:var(--text2);flex:1}
+  
+  /* PROGRESS */
+  .progress-track{background:rgba(255,255,255,.05);border-radius:4px;height:6px;overflow:hidden;margin-top:4px}
+  .progress-bar{height:100%;border-radius:4px;transition:width .8s ease}
+  
+  /* TWIN CANVAS */
+  #twinCanvas{background:var(--bg2);border:1px solid var(--border);border-radius:8px;display:block;max-width:100%}
+  
+  /* TOGGLE */
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+  .toggle{position:relative;width:36px;height:20px;display:inline-block}
+  .toggle input{opacity:0;width:0;height:0}
+  .slider{position:absolute;inset:0;background:rgba(255,255,255,.1);border-radius:20px;transition:.3s;cursor:pointer}
+  .slider::before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}
+  input:checked+.slider{background:var(--neon)}
+  input:checked+.slider::before{transform:translateX(16px);background:var(--bg)}
+  
+  /* SCROLLBAR */
+  ::-webkit-scrollbar{width:4px;height:4px}
+  ::-webkit-scrollbar-track{background:var(--bg2)}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+  
+  /* CONFIDENCE */
+  .conf-ring{display:flex;align-items:center;gap:10px;margin:8px 0}
+  .conf-circle{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;position:relative;flex-shrink:0}
+  
+  /* REWARD */
+  .reward-item{display:flex;align-items:center;gap:10px;padding:8px;background:var(--bg2);border-radius:8px;margin-bottom:6px;border:1px solid var(--border)}
+  .reward-icon{font-size:18px;width:32px;text-align:center}
+  .reward-info{flex:1}
+  .reward-name{font-size:12px;font-weight:600}
+  .reward-pts{font-size:10px;color:var(--text2)}
+  
+  /* SENSOR */
+  .sensor-node{display:flex;align-items:center;gap:8px;padding:6px;background:var(--bg2);border-radius:6px;margin-bottom:4px;border:1px solid var(--border);font-size:11px}
+  .sensor-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  
+  /* CAMERA */
+  .camera-feed{background:var(--bg);border:1px solid var(--border);border-radius:8px;height:90px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;margin-bottom:8px}
+  .camera-feed::before{content:'';position:absolute;inset:0;background:linear-gradient(45deg,rgba(0,245,255,.03),transparent)}
+  .camera-label{position:absolute;top:6px;left:8px;font-size:9px;color:var(--neon);background:rgba(0,0,0,.6);padding:2px 6px;border-radius:4px;font-weight:600}
+  .camera-rec{position:absolute;top:6px;right:8px;display:flex;align-items:center;gap:4px;font-size:9px;color:var(--danger)}
+  .rec-dot{width:5px;height:5px;border-radius:50%;background:var(--danger);animation:pulse 1s infinite}
+  
+  /* SECTION TITLES */
+  .section-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+  .section-title span{color:var(--neon);font-size:12px}
+  
+  /* NAV scrollbar hidden */
+  .nav::-webkit-scrollbar{height:0}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">⚡ EVENTFLOW X</div>
+  <button class="nav-btn active" onclick="showPage('dashboard')">Dashboard</button>
+  <button class="nav-btn" onclick="showPage('twin')">Digital Twin</button>
+  <button class="nav-btn" onclick="showPage('navigation')">Navigation</button>
+  <button class="nav-btn" onclick="showPage('concessions')">Concessions</button>
+  <button class="nav-btn" onclick="showPage('alerts')">Alerts</button>
+  <button class="nav-btn" onclick="showPage('admin')">Admin</button>
+  <button class="nav-btn" onclick="showPage('ai')">AI Assistant</button>
+  <div class="nav-status"><div class="pulse"></div>LIVE</div>
+</nav>
+
+<!-- DASHBOARD -->
+<div id="page-dashboard" class="page active">
+  <div class="section-title">AI Command Center <span>REAL-TIME</span></div>
+  
+  <div class="grid4" style="margin-bottom:12px">
+    <div class="metric"><div class="metric-val" id="m-crowd">42,817</div><div class="metric-label">Total Attendance</div><div class="metric-trend up">▲ 94% capacity</div></div>
+    <div class="metric"><div class="metric-val" id="m-density" style="color:#f97316">73%</div><div class="metric-label">Avg Density</div><div class="metric-trend warn">⚠ High zones: 3</div></div>
+    <div class="metric"><div class="metric-val" id="m-inc" style="color:#ef4444">2</div><div class="metric-label">Active Incidents</div><div class="metric-trend down">▼ Monitoring</div></div>
+    <div class="metric"><div class="metric-val" id="m-sys" style="color:#10b981">98.2%</div><div class="metric-label">System Health</div><div class="metric-trend up">▲ All nodes up</div></div>
+  </div>
+
+  <div class="grid2">
+    <div>
+      <!-- ZONE HEATMAP -->
+      <div class="card">
+        <div class="card-title">Stadium Zone Density</div>
+        <div class="zone-map" id="zoneMap"></div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text2)">
+          <span style="color:var(--ok)">■ Low</span>
+          <span style="color:var(--warn)">■ Medium</span>
+          <span style="color:var(--danger)">■ High</span>
+          <span style="color:#7c3aed">■ Critical</span>
+        </div>
+      </div>
+      
+      <!-- CROWD TREND -->
+      <div class="card">
+        <div class="card-title">Crowd Surge Prediction</div>
+        <div class="chart-wrap"><canvas id="crowdChart" role="img" aria-label="Crowd surge prediction over time">Crowd trend data</canvas></div>
+      </div>
+    </div>
+    
+    <div>
+      <!-- EMOTION AI -->
+      <div class="card">
+        <div class="card-title">Emotion AI — Fan Mood</div>
+        <div id="emotionPanel">
+          <div class="emotion-row"><div class="emotion-name">Excited</div><div class="emotion-track"><div class="emotion-bar" id="e-excited" style="background:#10b981"></div></div><div class="emotion-val" id="ev-excited">68%</div></div>
+          <div class="emotion-row"><div class="emotion-name">Calm</div><div class="emotion-track"><div class="emotion-bar" id="e-calm" style="background:#00f5ff"></div></div><div class="emotion-val" id="ev-calm">18%</div></div>
+          <div class="emotion-row"><div class="emotion-name">Angry</div><div class="emotion-track"><div class="emotion-bar" id="e-angry" style="background:#ef4444"></div></div><div class="emotion-val" id="ev-angry">8%</div></div>
+          <div class="emotion-row"><div class="emotion-name">Panic</div><div class="emotion-track"><div class="emotion-bar" id="e-panic" style="background:#7c3aed"></div></div><div class="emotion-val" id="ev-panic">6%</div></div>
+        </div>
+        <div class="btn-row"><button class="btn" onclick="randomizeEmotions()">Simulate Shift</button></div>
+      </div>
+      
+      <!-- AI DECISION LOG -->
+      <div class="card">
+        <div class="card-title">AI Decision Log</div>
+        <div class="ai-log" id="aiLog">
+          <div class="ai-log-entry"><div class="ai-log-time">20:14:32</div><div class="ai-log-msg"><span>GATE-7 opened</span> — surge predicted in North Stand</div></div>
+          <div class="ai-log-entry"><div class="ai-log-time">20:12:18</div><div class="ai-log-msg"><span>Staff deployed (×8)</span> — Zone C density 87%</div></div>
+          <div class="ai-log-entry"><div class="ai-log-time">20:09:45</div><div class="ai-log-msg"><span>Route optimized</span> — Section 14 crowd redirect</div></div>
+          <div class="ai-log-entry"><div class="ai-log-time">20:07:02</div><div class="ai-log-msg"><span>Food stand 3 restocked</span> — demand spike detected</div></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn" onclick="addAIDecision()">Trigger AI Action</button>
+          <button class="btn-ok btn" onclick="approveAll()">Approve All</button>
+        </div>
+      </div>
+      
+      <!-- AI CONFIDENCE -->
+      <div class="card">
+        <div class="card-title">AI Confidence Scores</div>
+        <div class="conf-ring">
+          <div class="conf-circle" style="background:conic-gradient(#10b981 0% 92%,rgba(255,255,255,.05) 92%);color:var(--ok)">92%</div>
+          <div><div style="font-size:12px;font-weight:600">Crowd Prediction</div><div style="font-size:10px;color:var(--text2)">ML Model v4.2</div></div>
+        </div>
+        <div class="conf-ring">
+          <div class="conf-circle" style="background:conic-gradient(#f97316 0% 78%,rgba(255,255,255,.05) 78%);color:var(--warn)">78%</div>
+          <div><div style="font-size:12px;font-weight:600">Exit Rush Prediction</div><div style="font-size:10px;color:var(--text2)">RL Simulation Active</div></div>
+        </div>
+        <div class="conf-ring">
+          <div class="conf-circle" style="background:conic-gradient(#00f5ff 0% 85%,rgba(255,255,255,.05) 85%);color:var(--neon)">85%</div>
+          <div><div style="font-size:12px;font-weight:600">Anomaly Detection</div><div style="font-size:10px;color:var(--text2)">Vision AI v2.1</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DIGITAL TWIN -->
+<div id="page-twin" class="page">
+  <div class="section-title">Digital Twin Simulation <span>LIVE ENGINE</span></div>
+  <div class="card">
+    <div class="card-title">Stadium 3D Simulation Engine</div>
+    <canvas id="twinCanvas" width="640" height="260"></canvas>
+    <div class="btn-row" style="margin-top:10px">
+      <button class="btn" id="simPlayBtn" onclick="toggleSimulation()">⏸ Pause</button>
+      <button class="btn" onclick="resetSimulation()">↺ Reset</button>
+      <button class="btn btn-danger" onclick="triggerEvacuation()">🚨 Evacuate</button>
+      <button class="btn btn-warn" onclick="triggerRush()">⚡ Surge Event</button>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">Simulation Controls</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:8px">Time slider (past → future)</div>
+      <input type="range" id="timeSlider" min="0" max="100" value="60" style="width:100%;margin-bottom:6px" oninput="updateTimeSlider(this.value)">
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2)">
+        <span>-90 min</span><span id="timeLabel" style="color:var(--neon)">NOW</span><span>+90 min</span>
+      </div>
+      <div style="margin-top:12px;font-size:11px">
+        <div class="toggle-row"><span>Emergency Mode</span><label class="toggle"><input type="checkbox" id="emergToggle" onchange="toggleEmerg(this.checked)"><span class="slider"></span></label></div>
+        <div class="toggle-row"><span>Show Crowd Vectors</span><label class="toggle"><input type="checkbox" checked onchange="toggleVectors(this.checked)"><span class="slider"></span></label></div>
+        <div class="toggle-row"><span>AI Pathfinding</span><label class="toggle"><input type="checkbox" checked><span class="slider"></span></label></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Simulation Stats</div>
+      <div class="grid2" style="gap:6px">
+        <div class="metric"><div class="metric-val" id="sim-agents" style="font-size:18px">1,240</div><div class="metric-label">Sim Agents</div></div>
+        <div class="metric"><div class="metric-val" id="sim-fps" style="font-size:18px;color:var(--ok)">60</div><div class="metric-label">Sim FPS</div></div>
+        <div class="metric"><div class="metric-val" id="sim-evac" style="font-size:18px;color:var(--warn)">0:00</div><div class="metric-label">Evac ETA</div></div>
+        <div class="metric"><div class="metric-val" id="sim-risk" style="font-size:18px;color:var(--ok)">LOW</div><div class="metric-label">Risk Level</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NAVIGATION -->
+<div id="page-navigation" class="page">
+  <div class="section-title">Smart Navigation <span>AR ROUTING</span></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">Multi-Route Optimizer</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:10px">Select route mode</div>
+      <div class="btn-row" style="margin-bottom:12px">
+        <button class="btn active" id="routefast" onclick="selectRoute('fast')">⚡ Fastest</button>
+        <button class="btn" id="routesafe" onclick="selectRoute('safe')">🛡 Safest</button>
+        <button class="btn" id="routeacc" onclick="selectRoute('accessible')">♿ Accessible</button>
+      </div>
+      <div id="routeInfo" class="card" style="margin:0;background:var(--bg2)">
+        <div style="font-size:12px;font-weight:600;color:var(--neon);margin-bottom:6px">FASTEST ROUTE</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.8">
+          Gate 7 → Corridor C → Section 14<br>
+          <span style="color:var(--ok)">ETA: 3 min 20 sec</span><br>
+          Crowd density: <span style="color:var(--ok)">Low (23%)</span><br>
+          AI confidence: <span style="color:var(--neon)">91%</span>
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:11px;color:var(--text2)">Blocked zones:</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+        <span class="badge badge-danger">Zone B</span>
+        <span class="badge badge-warn">Zone F</span>
+        <span class="badge badge-ok">Zone A — Clear</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">AR Navigation Overlay</div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;height:180px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center">
+        <canvas id="arCanvas" width="300" height="170" style="max-width:100%"></canvas>
+        <div style="position:absolute;top:8px;left:8px;font-size:9px;color:var(--neon);background:rgba(0,0,0,.7);padding:2px 6px;border-radius:3px">AR OVERLAY ACTIVE</div>
+      </div>
+      <div class="btn-row"><button class="btn" onclick="refreshARRoute()">Recalculate Route</button></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Sensor IoT Network — Offline Mesh Visualization</div>
+    <div id="sensorList"></div>
+  </div>
+</div>
+
+<!-- CONCESSIONS -->
+<div id="page-concessions" class="page">
+  <div class="section-title">Smart Concessions <span>AI DEMAND FORECAST</span></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">Demand Prediction</div>
+      <div class="chart-wrap"><canvas id="concChart" role="img" aria-label="Food demand prediction">Concession demand</canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Gamification — Fan Rewards</div>
+      <div id="rewardList"></div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">Live Polls + Fan Predictions</div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:10px">Who wins tonight?</div>
+      <div id="pollBars"></div>
+      <div class="btn-row"><button class="btn" onclick="updatePoll()">Simulate Vote</button></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Personalized Recommendations</div>
+      <div id="recList" style="font-size:12px;line-height:2;color:var(--text2)"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ALERTS -->
+<div id="page-alerts" class="page">
+  <div class="section-title">Emergency System <span>THREAT DETECTION</span></div>
+  <div class="grid2">
+    <div>
+      <div class="card">
+        <div class="card-title">Camera Vision — Threat Detection</div>
+        <div class="camera-feed"><div class="camera-label">CAM-01 NORTH</div><div class="camera-rec"><div class="rec-dot"></div>REC</div><canvas id="cam1" width="280" height="70" style="max-width:100%"></canvas></div>
+        <div class="camera-feed"><div class="camera-label">CAM-02 SOUTH</div><div class="camera-rec"><div class="rec-dot"></div>REC</div><canvas id="cam2" width="280" height="70" style="max-width:100%"></canvas></div>
+        <div class="btn-row"><button class="btn btn-danger" onclick="triggerThreat()">Simulate Threat</button><button class="btn btn-ok" onclick="clearThreat()">Clear All</button></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">Active Alerts</div>
+        <div id="alertList"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Drone Surveillance</div>
+        <div class="drone-view"><div class="drone-bg" id="droneMap"></div><div style="position:absolute;top:8px;left:8px;font-size:9px;color:var(--neon);background:rgba(0,0,0,.7);padding:2px 6px;border-radius:3px">DRONE-01 • 40m ALT</div></div>
+        <div class="btn-row" style="margin-top:8px"><button class="btn" onclick="moveDrone()">Move Drone</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="page-admin" class="page">
+  <div class="section-title">Control Panel <span>ADMIN ACCESS</span></div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">Gate Control</div>
+      <div id="gateList"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Blockchain Ticket Verification</div>
+      <div class="bc-list" id="bcList"></div>
+      <div class="btn-row" style="margin-top:8px"><button class="btn" onclick="verifyTickets()">Verify Batch</button><button class="btn btn-danger" onclick="addFraud()">Simulate Fraud</button></div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">Staff Deployment</div>
+      <div class="chart-wrap"><canvas id="staffChart" role="img" aria-label="Staff deployment by zone">Staff deployment chart</canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">System Health Monitor</div>
+      <div id="sysHealth"></div>
+    </div>
+  </div>
+</div>
+
+<!-- AI ASSISTANT -->
+<div id="page-ai" class="page">
+  <div class="section-title">AI Assistant <span>CLAUDE NEURAL CORE</span></div>
+  <div class="card">
+    <div class="card-title">Stadium Intelligence Chat</div>
+    <div class="chat-area" id="chatArea">
+      <div class="chat-msg chat-ai"><div class="chat-ai-name">⚡ EventFlow AI</div>Good evening. Stadium is at 94% capacity. I'm monitoring 42,817 attendees across 15 zones. 2 active incidents being managed. How can I assist?</div>
+    </div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chatInput" placeholder="Ask anything about the stadium..." onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="btn" onclick="sendChat()">Send</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="quickChat('What is the crowd density in Zone C?')">Zone C Status</button>
+      <button class="btn" onclick="quickChat('Predict exit rush time')">Exit Rush ETA</button>
+      <button class="btn" onclick="quickChat('Deploy emergency staff to North Stand')">Deploy Staff</button>
+      <button class="btn" onclick="quickChat('Show food demand spike analysis')">Food Demand</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ====== STATE ======
+let simRunning = true;
+let simEvac = false;
+let simAgents = [];
+let simCtx, arCtx, cam1Ctx, cam2Ctx, droneData=[];
+let crowdData = [41,43,45,50,58,65,70,73,76,74,73];
+let aiActions = ["GATE-5 opened — predicted surge","Staff x6 deployed — Zone A dense","Route C redirected — Zone B blocked","Concession 4 restocked — demand 89%","Emergency exits pre-cleared","Anomaly cleared — false positive Zone G","Fan reward distributed — gate 3 crowd control","Gate 11 throttled — max capacity reached"];
+let aiIdx = 0;
+let pollA = 52, pollB = 31, pollC = 17;
+let threats = [];
+let charts = {};
+
+// ====== PAGES ======
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const btns = document.querySelectorAll('.nav-btn');
+  const pages = ['dashboard','twin','navigation','concessions','alerts','admin','ai'];
+  const idx = pages.indexOf(id);
+  if(idx>=0) btns[idx].classList.add('active');
+  setTimeout(()=>initPageCharts(id),50);
+}
+
+// ====== INIT ======
+function initZoneMap(){
+  const zones=['A1','A2','A3','A4','A5','B1','B2','B3','B4','B5','C1','C2','C3','C4','C5'];
+  const densities=[45,62,88,91,55,70,48,85,77,60,38,92,65,82,44];
+  const colors=['#10b981','#f97316','#ef4444','#7c3aed'];
+  const zm=document.getElementById('zoneMap');
+  zm.innerHTML='';
+  zones.forEach((z,i)=>{
+    const d=densities[i];
+    const ci=d>85?3:d>75?2:d>55?1:0;
+    const div=document.createElement('div');
+    div.className='zone';
+    div.style.background=colors[ci]+'22';
+    div.style.borderColor=colors[ci]+'44';
+    div.style.color=colors[ci];
+    div.innerHTML=`<div><div style="font-size:10px;font-weight:700">${z}</div><div class="zone-label">${d}%</div></div>`;
+    div.onclick=()=>showZoneDetail(z,d);
+    zm.appendChild(div);
+  });
+}
+
+function showZoneDetail(z,d){
+  addAILog(`Zone ${z} inspected — density ${d}% — AI monitoring active`);
+}
+
+function initPageCharts(page){
+  if(page==='dashboard'||page==='dashboard_init'){
+    if(!charts.crowd){
+      const ctx=document.getElementById('crowdChart').getContext('2d');
+      const labels=['19:00','19:15','19:30','19:45','20:00','20:15','20:30','20:45','21:00','21:15','21:30'];
+      charts.crowd=new Chart(ctx,{type:'line',data:{labels,datasets:[{label:'Crowd',data:crowdData,borderColor:'#00f5ff',backgroundColor:'rgba(0,245,255,.07)',tension:.4,fill:true,pointRadius:3,pointBackgroundColor:'#00f5ff'},{label:'AI Prediction',data:[null,null,null,null,null,null,null,73,78,81,79],borderColor:'#7c3aed',borderDash:[5,3],backgroundColor:'rgba(124,58,237,.04)',tension:.4,fill:false,pointRadius:3,pointBackgroundColor:'#7c3aed'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8ba3c7',font:{size:9}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#8ba3c7',font:{size:9}},grid:{color:'rgba(255,255,255,.04)'},min:35,max:90}}}});
+    }
+  }
+  if(page==='concessions'){
+    if(!charts.conc){
+      const ctx=document.getElementById('concChart').getContext('2d');
+      charts.conc=new Chart(ctx,{type:'bar',data:{labels:['Hotdog','Beer','Nachos','Pizza','Soda','Coffee'],datasets:[{label:'Current',data:[340,520,180,290,410,155],backgroundColor:'rgba(0,245,255,.25)',borderColor:'#00f5ff',borderWidth:1},{label:'Predicted',data:[380,490,220,310,440,140],backgroundColor:'rgba(124,58,237,.2)',borderColor:'#7c3aed',borderWidth:1,borderDash:[3,3]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8ba3c7',font:{size:9}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#8ba3c7',font:{size:9}},grid:{color:'rgba(255,255,255,.04)'}}}}}); 
+    }
+  }
+  if(page==='admin'){
+    if(!charts.staff){
+      const ctx=document.getElementById('staffChart').getContext('2d');
+      charts.staff=new Chart(ctx,{type:'bar',data:{labels:['Gate','North','South','East','West','VIP','Exits'],datasets:[{label:'Deployed',data:[12,8,15,6,9,4,20],backgroundColor:'rgba(16,185,129,.25)',borderColor:'#10b981',borderWidth:1},{label:'Needed',data:[14,12,15,8,10,4,24],backgroundColor:'rgba(239,68,68,.15)',borderColor:'#ef4444',borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8ba3c7',font:{size:9}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#8ba3c7',font:{size:9}},grid:{color:'rgba(255,255,255,.04)'}}}}}); 
+    }
+    initBlockchain();
+    initSysHealth();
+    initGates();
+  }
+  if(page==='navigation'){
+    initSensors();
+    drawAR();
+  }
+  if(page==='twin'){
+    initTwin();
+  }
+  if(page==='alerts'){
+    initAlerts();
+    initDrone();
+    drawCameras();
+  }
+  if(page==='concessions'){
+    initRewards();
+    initPoll();
+    initRecs();
+  }
+}
+
+// ====== TWIN ======
+function initTwin(){
+  const canvas=document.getElementById('twinCanvas');
+  simCtx=canvas.getContext('2d');
+  canvas.width=canvas.clientWidth||640;
+  // init agents
+  simAgents=[];
+  for(let i=0;i<80;i++){
+    simAgents.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-.5)*1.5,vy:(Math.random()-.5)*1.5,color:['#00f5ff','#10b981','#f97316','#ef4444'][Math.floor(Math.random()*4)]});
+  }
+  if(!window.twinLoop) window.twinLoop=setInterval(drawTwin,33);
+}
+
+function drawTwin(){
+  const canvas=document.getElementById('twinCanvas');
+  if(!simCtx||!canvas) return;
+  const w=canvas.width,h=canvas.height;
+  simCtx.fillStyle='rgba(10,22,40,0.85)';
+  simCtx.fillRect(0,0,w,h);
+  // stadium outline
+  simCtx.strokeStyle='rgba(0,245,255,.2)';simCtx.lineWidth=1;
+  simCtx.strokeRect(20,20,w-40,h-40);
+  simCtx.strokeStyle='rgba(0,245,255,.1)';
+  // center field
+  simCtx.beginPath();simCtx.ellipse(w/2,h/2,w*.22,h*.28,0,0,Math.PI*2);simCtx.strokeStyle='rgba(16,185,129,.3)';simCtx.stroke();
+  simCtx.beginPath();simCtx.ellipse(w/2,h/2,w*.1,h*.12,0,0,Math.PI*2);simCtx.strokeStyle='rgba(16,185,129,.2)';simCtx.stroke();
+  // agents
+  if(!simRunning) return;
+  simAgents.forEach(a=>{
+    if(simEvac){
+      // move toward exits
+      const exits=[{x:0,y:h/2},{x:w,y:h/2},{x:w/2,y:0},{x:w/2,y:h}];
+      let nearest=exits[0],md=999;
+      exits.forEach(e=>{const d=Math.hypot(a.x-e.x,a.y-e.y);if(d<md){md=d;nearest=e;}});
+      const angle=Math.atan2(nearest.y-a.y,nearest.x-a.x);
+      a.vx=Math.cos(angle)*2;a.vy=Math.sin(angle)*2;
+    } else {
+      a.vx+=(Math.random()-.5)*.3;a.vy+=(Math.random()-.5)*.3;
+      const speed=Math.hypot(a.vx,a.vy);if(speed>2){a.vx*=2/speed;a.vy*=2/speed;}
+    }
+    a.x+=a.vx;a.y+=a.vy;
+    if(a.x<25)a.x=25,a.vx*=-1;if(a.x>w-25)a.x=w-25,a.vx*=-1;
+    if(a.y<25)a.y=25,a.vy*=-1;if(a.y>h-25)a.y=h-25,a.vy*=-1;
+    simCtx.beginPath();simCtx.arc(a.x,a.y,2.5,0,Math.PI*2);
+    simCtx.fillStyle=simEvac?'#ef4444':a.color;simCtx.fill();
+  });
+  // labels
+  simCtx.fillStyle='rgba(0,245,255,.4)';simCtx.font='9px monospace';
+  ['N','S','E','W'].forEach((d,i)=>{
+    const pos=[{x:w/2,y:30},{x:w/2,y:h-15},{x:w-30,y:h/2},{x:20,y:h/2}];
+    simCtx.fillText(d,pos[i].x,pos[i].y);
+  });
+}
+
+function toggleSimulation(){
+  simRunning=!simRunning;
+  document.getElementById('simPlayBtn').textContent=simRunning?'⏸ Pause':'▶ Play';
+}
+
+function resetSimulation(){
+  simEvac=false;
+  document.getElementById('sim-risk').textContent='LOW';
+  document.getElementById('sim-risk').style.color='var(--ok)';
+  document.getElementById('sim-evac').textContent='0:00';
+  document.getElementById('emergToggle').checked=false;
+  initTwin();
+}
+
+function triggerEvacuation(){
+  simEvac=true;
+  document.getElementById('sim-risk').textContent='CRITICAL';
+  document.getElementById('sim-risk').style.color='var(--danger)';
+  document.getElementById('sim-evac').textContent='4:30';
+  addAILog('EVACUATION INITIATED — all agents routing to exits');
+  let t=270;
+  const ti=setInterval(()=>{
+    t--;document.getElementById('sim-evac').textContent=Math.floor(t/60)+':'+String(t%60).padStart(2,'0');
+    if(t<=0){clearInterval(ti);simEvac=false;document.getElementById('sim-evac').textContent='DONE';}
+  },100);
+}
+
+function triggerRush(){
+  for(let i=0;i<20;i++) simAgents.push({x:Math.random()*100+300,y:Math.random()*80+90,vx:(Math.random()-.5)*3,vy:(Math.random()-.5)*3,color:'#f97316'});
+  document.getElementById('sim-agents').textContent=(simAgents.length).toLocaleString();
+  document.getElementById('sim-risk').textContent='HIGH';
+  document.getElementById('sim-risk').style.color='var(--warn)';
+  addAILog('Surge event simulated — 20 agents added to North Stand');
+}
+
+function toggleEmerg(on){
+  if(on) triggerEvacuation(); else resetSimulation();
+}
+
+function toggleVectors(on){}
+
+function updateTimeSlider(v){
+  const lbl=document.getElementById('timeLabel');
+  if(v==60) lbl.textContent='NOW';
+  else if(v<60) lbl.textContent=`-${Math.round((60-v)*1.5)}min`;
+  else lbl.textContent=`+${Math.round((v-60)*1.5)}min`;
+}
+
+// ====== EMOTION ======
+function randomizeEmotions(){
+  const total=100;
+  const e=Math.floor(Math.random()*50+30);
+  const c=Math.floor(Math.random()*20+5);
+  const a=Math.floor(Math.random()*15);
+  const p=total-e-c-a;
+  setEmotion('excited',e);setEmotion('calm',c);setEmotion('angry',a);setEmotion('panic',Math.max(0,p));
+  if(a>20) addAILog('EMOTION ALERT — anger spike detected in stands, deploying staff');
+  if(p>15) addAILog('PANIC RISK detected — activating emergency protocols');
+}
+function setEmotion(name,val){
+  document.getElementById('e-'+name).style.width=val+'%';
+  document.getElementById('ev-'+name).textContent=val+'%';
+}
+
+// ====== AI LOG ======
+function addAILog(msg){
+  const now=new Date();
+  const t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  const log=document.getElementById('aiLog');
+  const e=document.createElement('div');
+  e.className='ai-log-entry';
+  e.innerHTML=`<div class="ai-log-time">${t}</div><div class="ai-log-msg"><span>${msg.split('—')[0]}</span>${msg.includes('—')?'—'+msg.split('—').slice(1).join('—'):''}</div>`;
+  log.prepend(e);
+}
+function addAIDecision(){
+  const actions=aiActions;
+  addAILog(actions[aiIdx%actions.length]);
+  aiIdx++;
+}
+function approveAll(){
+  addAILog('All pending AI decisions approved by operator');
+}
+
+// ====== BLOCKCHAIN ======
+function initBlockchain(){
+  const list=document.getElementById('bcList');
+  list.innerHTML='';
+  for(let i=0;i<5;i++){
+    const hash='0x'+Math.random().toString(16).substr(2,8)+'...'+Math.random().toString(16).substr(2,4);
+    const ok=Math.random()>.1;
+    const item=document.createElement('div');
+    item.className='bc-item';
+    item.innerHTML=`<div class="bc-hash">${hash}</div><span class="badge ${ok?'badge-ok':'badge-danger'}">${ok?'VALID':'FRAUD'}</span>`;
+    list.appendChild(item);
+  }
+}
+function verifyTickets(){
+  initBlockchain();
+  addAILog('Ticket batch verified on blockchain — 48 confirmations');
+}
+function addFraud(){
+  const list=document.getElementById('bcList');
+  const hash='0x'+Math.random().toString(16).substr(2,8)+'...'+Math.random().toString(16).substr(2,4);
+  const item=document.createElement('div');
+  item.className='bc-item';
+  item.innerHTML=`<div class="bc-hash">${hash}</div><span class="badge badge-danger">FRAUD ⚠</span>`;
+  list.prepend(item);
+  addAILog('FRAUD DETECTED — ticket invalidated, security alerted');
+}
+
+// ====== SYS HEALTH ======
+function initSysHealth(){
+  const systems=[
+    {name:'AI Neural Engine',val:98,ok:true},{name:'Camera Network',val:94,ok:true},
+    {name:'Sensor Mesh',val:87,ok:true},{name:'Blockchain Node',val:100,ok:true},
+    {name:'Emergency Broadcast',val:77,ok:false},{name:'Database Cluster',val:99,ok:true}
+  ];
+  const el=document.getElementById('sysHealth');
+  el.innerHTML=systems.map(s=>`
+    <div class="toggle-row">
+      <div style="font-size:11px">${s.name}</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="font-size:11px;color:${s.ok?'var(--ok)':'var(--warn)'}">${s.val}%</div>
+        <div class="progress-track" style="width:60px"><div class="progress-bar" style="width:${s.val}%;background:${s.ok?'var(--ok)':'var(--warn)'}"></div></div>
+      </div>
+    </div>`).join('');
+}
+
+// ====== GATES ======
+function initGates(){
+  const gates=['Gate 1','Gate 3','Gate 5','Gate 7','Gate 9','Gate 11','Gate A','Gate VIP'];
+  const states=[true,true,false,true,true,false,true,true];
+  const el=document.getElementById('gateList');
+  el.innerHTML=gates.map((g,i)=>`
+    <div class="toggle-row">
+      <div style="font-size:11px">${g}</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="badge ${states[i]?'badge-ok':'badge-danger'}">${states[i]?'OPEN':'CLOSED'}</span>
+        <label class="toggle"><input type="checkbox" ${states[i]?'checked':''} onchange="gateToggle('${g}',this.checked)"><span class="slider"></span></label>
+      </div>
+    </div>`).join('');
+}
+function gateToggle(g,on){
+  addAILog(`${g} ${on?'opened':'closed'} — AI routing updated`);
+}
+
+// ====== SENSORS ======
+function initSensors(){
+  const sensors=[
+    {id:'SNS-01',zone:'North',val:87,ok:true},{id:'SNS-02',zone:'South',val:62,ok:true},
+    {id:'SNS-03',zone:'East',val:45,ok:true},{id:'SNS-04',zone:'West',val:79,ok:false},
+    {id:'SNS-05',zone:'VIP',val:33,ok:true},{id:'SNS-06',zone:'Exit A',val:91,ok:false}
+  ];
+  const el=document.getElementById('sensorList');
+  el.innerHTML=sensors.map(s=>`
+    <div class="sensor-node">
+      <div class="sensor-dot" style="background:${s.ok?'var(--ok)':'var(--danger)'}"></div>
+      <div style="flex:1"><span style="font-weight:600">${s.id}</span> — Zone ${s.zone}</div>
+      <span class="badge ${s.ok?'badge-ok':'badge-danger'}">${s.val}%</span>
+      <span class="badge badge-info">${s.ok?'ONLINE':'OFFLINE'}</span>
+    </div>`).join('');
+}
+
+// ====== AR ======
+function drawAR(){
+  const canvas=document.getElementById('arCanvas');
+  if(!canvas) return;
+  arCtx=canvas.getContext('2d');
+  const w=canvas.width,h=canvas.height;
+  arCtx.clearRect(0,0,w,h);
+  arCtx.strokeStyle='rgba(0,245,255,.15)';arCtx.lineWidth=.5;
+  for(let i=0;i<w;i+=20) arCtx.strokeRect(i,0,20,h);
+  // route arrows
+  const route=[{x:30,y:120},{x:80,y:90},{x:140,y:70},{x:200,y:50},{x:260,y:40}];
+  arCtx.strokeStyle='#00f5ff';arCtx.lineWidth=2.5;arCtx.setLineDash([6,3]);
+  arCtx.beginPath();route.forEach((p,i)=>{if(i==0)arCtx.moveTo(p.x,p.y);else arCtx.lineTo(p.x,p.y);});arCtx.stroke();
+  arCtx.setLineDash([]);
+  // arrows on route
+  route.slice(1).forEach((p,i)=>{
+    const prev=route[i];
+    const angle=Math.atan2(p.y-prev.y,p.x-prev.x);
+    arCtx.save();arCtx.translate(p.x,p.y);arCtx.rotate(angle);
+    arCtx.fillStyle='#00f5ff';arCtx.beginPath();arCtx.moveTo(6,0);arCtx.lineTo(-4,-4);arCtx.lineTo(-4,4);arCtx.closePath();arCtx.fill();
+    arCtx.restore();
+  });
+  // labels
+  arCtx.fillStyle='rgba(0,245,255,.8)';arCtx.font='9px monospace';
+  arCtx.fillText('START',10,135);arCtx.fillText('GATE 14 →',200,35);
+  arCtx.fillStyle='rgba(16,185,129,.7)';arCtx.fillText('CLEAR PATH',90,60);
+}
+function refreshARRoute(){ drawAR(); addAILog('Route recalculated — optimal path updated'); }
+
+// ====== ALERTS ======
+function initAlerts(){
+  const alertData=[
+    {type:'danger',title:'Crowd Surge — Zone C',msg:'Density 94% — threshold exceeded. AI dispatching staff and opening Gate 8.',badge:'CRITICAL'},
+    {type:'warn',title:'Anomaly Detected — Cam 04',msg:'Unusual cluster behavior in Section 12. Vision AI confidence 82%. Monitoring.',badge:'WARNING'},
+    {type:'info',title:'Exit Rush Predicted — 21:45',msg:'ML model predicts 35% crowd surge at exits in 45 min. Pre-routing active.',badge:'PREDICTED'},
+    {type:'ok',title:'Threat Cleared — Zone B',msg:'Previous stampede risk resolved. Crowd dispersed. Back to normal operations.',badge:'RESOLVED'},
+  ];
+  const el=document.getElementById('alertList');
+  el.innerHTML=alertData.map(a=>`
+    <div class="alert alert-${a.type}">
+      <div class="alert-head"><span class="alert-title" style="color:var(--${a.type==='ok'?'ok':a.type==='danger'?'danger':a.type==='warn'?'warn':'neon'})">${a.title}</span><span class="badge badge-${a.type==='ok'?'ok':a.type==='danger'?'danger':a.type==='warn'?'warn':'info'}">${a.badge}</span></div>
+      <div class="alert-body">${a.msg}</div>
+    </div>`).join('');
+}
+function triggerThreat(){
+  threats.push({x:Math.random()*280,y:Math.random()*70,r:Math.random()*15+8});
+  drawCameras();
+  const el=document.getElementById('alertList');
+  const div=document.createElement('div');
+  div.className='alert alert-danger';
+  div.innerHTML=`<div class="alert-head"><span class="alert-title" style="color:var(--danger)">THREAT DETECTED — Active Camera</span><span class="badge badge-danger">LIVE</span></div><div class="alert-body">Vision AI detected possible altercation. Dispatching security team. Auto-locking adjacent gates.</div>`;
+  el.prepend(div);
+}
+function clearThreat(){threats=[];drawCameras();addAILog('All threats cleared — system returned to normal');}
+function drawCameras(){
+  [['cam1','CAM-01'],[' cam2','CAM-02']].forEach(([id,lbl],ci)=>{
+    const c=document.getElementById(id.trim());
+    if(!c) return;
+    const ctx=c.getContext('2d');
+    const w=c.width,h=c.height;
+    ctx.fillStyle='#020817';ctx.fillRect(0,0,w,h);
+    // grid
+    ctx.strokeStyle='rgba(0,245,255,.05)';ctx.lineWidth=.5;
+    for(let i=0;i<w;i+=20){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,h);ctx.stroke();}
+    // crowd dots
+    for(let i=0;i<30;i++){
+      const x=15+Math.random()*(w-30),y=10+Math.random()*(h-20);
+      ctx.beginPath();ctx.arc(x,y,2,0,Math.PI*2);ctx.fillStyle=`rgba(0,245,255,${.3+Math.random()*.4})`;ctx.fill();
+    }
+    // threats
+    if(ci==0) threats.forEach(t=>{
+      ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,Math.PI*2);ctx.strokeStyle='rgba(239,68,68,.8)';ctx.lineWidth=2;ctx.stroke();
+      ctx.fillStyle='rgba(239,68,68,.15)';ctx.fill();
+    });
+    // scanline
+    ctx.fillStyle='rgba(0,245,255,.02)';
+    for(let i=0;i<h;i+=3){ctx.fillRect(0,i,w,1);}
+  });
+}
+
+// ====== DRONE ======
+function initDrone(){
+  const el=document.getElementById('droneMap');
+  el.innerHTML='';
+  droneData=[];
+  for(let i=0;i<50;i++){
+    const v=Math.random();
+    const color=v>.8?'rgba(239,68,68,':'v>.6'?'rgba(249,115,22,':'rgba(16,185,129,';
+    const c=v>.8?'rgba(239,68,68,':v>.6?'rgba(249,115,22,':'rgba(16,185,129,';
+    const cell=document.createElement('div');
+    cell.className='drone-cell';
+    cell.style.background=c+(v*.7+.15)+')';
+    el.appendChild(cell);
+    droneData.push(cell);
+  }
+}
+function moveDrone(){
+  droneData.forEach(c=>{
+    const v=Math.random();
+    const clr=v>.8?'rgba(239,68,68,':v>.6?'rgba(249,115,22,':'rgba(16,185,129,';
+    c.style.background=clr+(v*.7+.15)+')';
+  });
+}
+
+// ====== POLL ======
+function initPoll(){updatePoll(true);}
+function updatePoll(init=false){
+  if(!init){
+    pollA+=Math.floor(Math.random()*6);pollB+=Math.floor(Math.random()*4);pollC+=Math.floor(Math.random()*3);
+    const t=pollA+pollB+pollC;pollA=Math.round(pollA/t*100);pollB=Math.round(pollB/t*100);pollC=100-pollA-pollB;
+  }
+  const el=document.getElementById('pollBars');
+  const teams=[{name:'Home Eagles',val:pollA,c:'#00f5ff'},{name:'Away Lions',val:pollB,c:'#7c3aed'},{name:'Draw',val:pollC,c:'#f97316'}];
+  el.innerHTML=teams.map(t=>`
+    <div class="emotion-row">
+      <div class="emotion-name" style="width:90px;font-size:11px">${t.name}</div>
+      <div class="emotion-track"><div class="emotion-bar" style="width:${t.val}%;background:${t.c}"></div></div>
+      <div class="emotion-val">${t.val}%</div>
+    </div>`).join('');
+}
+
+// ====== REWARDS ======
+function initRewards(){
+  const rewards=[
+    {icon:'🏆',name:'First to Scan',pts:'500 pts earned',progress:100},
+    {icon:'🍟',name:'Order 3 Items',pts:'250 pts — 2/3 done',progress:66},
+    {icon:'📸',name:'Share Moment',pts:'100 pts available',progress:0},
+    {icon:'⭐',name:'VIP Loyalty',pts:'1,200 total pts',progress:82},
+  ];
+  document.getElementById('rewardList').innerHTML=rewards.map(r=>`
+    <div class="reward-item">
+      <div class="reward-icon">${r.icon}</div>
+      <div class="reward-info"><div class="reward-name">${r.name}</div><div class="reward-pts">${r.pts}</div><div class="progress-track"><div class="progress-bar" style="width:${r.progress}%;background:var(--neon)"></div></div></div>
+    </div>`).join('');
+}
+
+// ====== RECS ======
+function initRecs(){
+  const recs=['🍕 Pizza + Beer deal — Zone A, Stand 4','🪑 Seat upgrade available — Section 8, Row D','🚶 Quieter route via East Corridor','📍 Closest restroom: Level 2, Section C','🎟 Post-match event access unlocked','⚽ Replays on screen 7 in 2 minutes'];
+  document.getElementById('recList').innerHTML=recs.map(r=>`<div style="padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05)">${r}</div>`).join('');
+}
+
+// ====== ROUTE ======
+function selectRoute(type){
+  ['fast','safe','acc'].forEach(r=>document.getElementById('route'+r).classList.remove('active'));
+  document.getElementById('route'+type).classList.add('active');
+  const info={
+    fast:{title:'FASTEST ROUTE',body:'Gate 7 → Corridor C → Section 14<br><span style="color:var(--ok)">ETA: 3 min 20 sec</span><br>Crowd density: <span style="color:var(--ok)">Low (23%)</span><br>AI confidence: <span style="color:var(--neon)">91%</span>'},
+    safe:{title:'SAFEST ROUTE',body:'Gate 3 → Main Boulevard → Section 11<br><span style="color:var(--neon)">ETA: 5 min 45 sec</span><br>Crowd density: <span style="color:var(--ok)">Very Low (14%)</span><br>AI confidence: <span style="color:var(--neon)">96%</span>'},
+    accessible:{title:'ACCESSIBLE ROUTE',body:'Ground Level → Elevator A → Section 8<br><span style="color:var(--ok)">ETA: 4 min 10 sec</span><br>All ramps + elevators active<br>AI confidence: <span style="color:var(--neon)">99%</span>'},
+  };
+  const i=info[type];
+  document.getElementById('routeInfo').innerHTML=`<div style="font-size:12px;font-weight:600;color:var(--neon);margin-bottom:6px">${i.title}</div><div style="font-size:11px;color:var(--text2);line-height:1.8">${i.body}</div>`;
+}
+
+// ====== CHAT ======
+const chatResponses={
+  'Zone C': 'Zone C currently shows 94% density — CRITICAL level. I\'ve pre-emptively opened Gate 8 and deployed 8 staff members. Recommend immediate crowd redirect via Corridor B.',
+  'exit rush': 'Based on historical patterns and current crowd velocity, I predict exit rush will peak at 21:47 (±3 min). I\'ve pre-cleared 6 exit lanes and am coordinating transport.',
+  'staff': 'Deploying emergency staff to North Stand now. 12 personnel dispatched. ETA 90 seconds. Adjacent zones on standby. Security notified.',
+  'food': 'Beer demand spiking 40% above baseline. Hotdog stands at 89% depletion. I\'ve triggered restocking alerts for Stands 3, 7, and 11. Estimated restock in 8 minutes.',
+  'default': 'I\'ve analyzed the current stadium state. All systems operational. 42,817 attendees being monitored across 15 zones. Predictive models running with 92% confidence. What specific action do you need?'
+};
+function sendChat(){
+  const input=document.getElementById('chatInput');
+  const msg=input.value.trim();
+  if(!msg) return;
+  addChatMsg(msg,'user');
+  input.value='';
+  setTimeout(()=>{
+    const key=Object.keys(chatResponses).find(k=>msg.toLowerCase().includes(k.toLowerCase()))||'default';
+    addChatMsg(chatResponses[key],'ai');
+  },800);
+}
+function quickChat(msg){addChatMsg(msg,'user');setTimeout(()=>{const key=Object.keys(chatResponses).find(k=>msg.toLowerCase().includes(k.toLowerCase()))||'default';addChatMsg(chatResponses[key],'ai');},800);}
+function addChatMsg(text,role){
+  const area=document.getElementById('chatArea');
+  const div=document.createElement('div');
+  div.className='chat-msg chat-'+role;
+  if(role==='ai') div.innerHTML=`<div class="chat-ai-name">⚡ EventFlow AI</div>${text}`;
+  else div.textContent=text;
+  area.appendChild(div);
+  area.scrollTop=area.scrollHeight;
+}
+
+// ====== LIVE UPDATES ======
+setInterval(()=>{
+  // Update crowd
+  const c=document.getElementById('m-crowd');
+  let v=parseInt(c.textContent.replace(/,/g,''));
+  v+=Math.floor(Math.random()*20-8);
+  c.textContent=v.toLocaleString();
+  // Update density
+  const d=document.getElementById('m-density');
+  let dv=parseInt(d.textContent);
+  dv+=Math.floor(Math.random()*5-2);
+  dv=Math.max(60,Math.min(95,dv));
+  d.textContent=dv+'%';
+  d.style.color=dv>85?'var(--danger)':dv>75?'var(--warn)':'var(--ok)';
+  // Update FPS
+  document.getElementById('sim-fps').textContent=Math.floor(58+Math.random()*4);
+  // Update crowd chart
+  if(charts.crowd){
+    crowdData.push(Math.floor(65+Math.random()*20));
+    if(crowdData.length>11) crowdData.shift();
+    charts.crowd.data.datasets[0].data=crowdData;
+    charts.crowd.update('none');
+  }
+  // Update emotions randomly
+  const eDiv=document.getElementById('e-excited');
+  if(eDiv){
+    const ev=parseInt(document.getElementById('ev-excited').textContent);
+    const newEv=Math.max(30,Math.min(90,ev+Math.floor(Math.random()*6-3)));
+    document.getElementById('e-excited').style.width=newEv+'%';
+    document.getElementById('ev-excited').textContent=newEv+'%';
+  }
+},2000);
+
+// Init
+initZoneMap();
+setInterval(initZoneMap,8000);
+initPageCharts('dashboard_init');
+</script>
+</body>
+</html>
