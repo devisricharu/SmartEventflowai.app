@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MyBank</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+}
+
+.container {
+    width: 400px;
+    margin: 80px auto;
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+h2 {
+    text-align: center;
+    color: #2c3e50;
+}
+
+input, button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 12px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+button {
+    background: #1abc9c;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #16a085;
+}
+
+.dashboard button {
+    margin-top: 10px;
+}
+
+.hidden {
+    display: none;
+}
+
+.statement {
+    background: #ecf0f1;
+    padding: 10px;
+    margin-top: 10px;
+    font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN PAGE -->
+<div class="container" id="loginBox">
+    <h2>MyBank Login</h2>
+    <input type="number" id="accNo" placeholder="Enter Account Number">
+    <button onclick="login()">Login</button>
+</div>
+
+<!-- DASHBOARD -->
+<div class="container hidden" id="dashboard">
+    <h2>Welcome to MyBank</h2>
+
+    <button onclick="checkBalance()">Check Balance</button>
+    <p id="balance"></p>
+
+    <input type="number" id="transferAmt" placeholder="Enter Amount">
+    <button onclick="transfer()">Transfer Amount</button>
+    <p id="transferMsg"></p>
+
+    <button onclick="miniStatement()">Mini Statement</button>
+    <div class="statement" id="statement"></div>
+
+    <button onclick="logout()">Logout</button>
+</div>
+
+<script>
+let balance = 50000;
+const validAccounts = [123, 456, 789];
+
+function login() {
+    let acc = parseInt(document.getElementById("accNo").value);
+
+    if (validAccounts.includes(acc)) {
+        document.getElementById("loginBox").classList.add("hidden");
+        document.getElementById("dashboard").classList.remove("hidden");
+    } else {
+        alert("Invalid Account Number");
+    }
+}
+
+function checkBalance() {
+    document.getElementById("balance").innerText =
+        "Available Balance: ₹" + balance;
+}
+
+function transfer() {
+    let amt = parseInt(document.getElementById("transferAmt").value);
+
+    if (amt > 0 && amt <= balance) {
+        balance -= amt;
+        document.getElementById("transferMsg").innerText =
+            "₹" + amt + " transferred successfully!";
+    } else {
+        document.getElementById("transferMsg").innerText =
+            "Invalid amount or insufficient balance";
+    }
+}
+
+function miniStatement() {
+    document.getElementById("statement").innerHTML = `
+        <strong>Last 1 Month Transactions</strong><br><br>
+        05 Jan - Debit ₹2000<br>
+        10 Jan - Credit ₹5000<br>
+        15 Jan - Debit ₹1500<br>
+        20 Jan - Debit ₹3000<br>
+        25 Jan - Credit ₹7000<br>
+    `;
+}
+
+function logout() {
+    location.reload();
+}
+</script>
+
+</body>
+</html>

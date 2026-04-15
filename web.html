@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apple AirPods Pro (2nd Generation) with MagSafe Case (USB‑C) ​​​​​​​(White)</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Segoe UI', Arial, sans-serif;
+}
+
+body{
+  min-height:100vh;
+  background:linear-gradient(270deg,#fde2e4,#e0c3fc,#d0f4de,#fff1eb);
+  background-size:800% 800%;
+  animation:bgMove 15s ease infinite;
+  color:#111;
+}
+
+/* Background animation */
+@keyframes bgMove{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+/* Header */
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:20px 40px;
+}
+
+.logo{
+  font-size:22px;
+  font-weight:700;
+}
+
+.cart-icon{
+  position:relative;
+  font-size:20px;
+  cursor:pointer;
+}
+
+.cart-count{
+  position:absolute;
+  top:-8px;
+  right:-10px;
+  background:#e63946;
+  color:#fff;
+  font-size:12px;
+  padding:3px 7px;
+  border-radius:50%;
+  display:none;
+}
+
+/* Containers */
+.container{
+  max-width:1200px;
+  margin:30px auto;
+  padding:30px;
+  background:rgba(255,255,255,0.9);
+  border-radius:22px;
+  box-shadow:0 20px 40px rgba(0,0,0,0.12);
+}
+
+/* Grid */
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:40px;
+}
+
+/* Floating image */
+.product-img img{
+  width:100%;
+  border-radius:18px;
+  animation:float 4s ease-in-out infinite;
+}
+
+@keyframes float{
+  0%{transform:translateY(0px)}
+  50%{transform:translateY(-12px)}
+  100%{transform:translateY(0px)}
+}
+
+/* Text */
+h1{
+  font-size:34px;
+  margin-bottom:10px;
+}
+
+.price{
+  font-size:26px;
+  color:#e63946;
+  margin-bottom:15px;
+}
+
+ul li{
+  margin-bottom:10px;
+  line-height:1.6;
+}
+
+/* Buttons */
+button{
+  width:100%;
+  padding:16px;
+  font-size:18px;
+  background:linear-gradient(135deg,#ff758f,#ff7eb3);
+  color:#fff;
+  border:none;
+  border-radius:14px;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+button:hover{
+  transform:translateY(-3px);
+  box-shadow:0 12px 25px rgba(0,0,0,0.25);
+}
+
+/* Trust */
+.trust{
+  margin-top:15px;
+  font-size:14px;
+  color:#555;
+}
+
+/* Sections */
+.section{
+  margin-top:50px;
+}
+
+/* Testimonials */
+.testimonials{
+  background:linear-gradient(135deg,#fff1eb,#ace0f9);
+  padding:25px;
+  border-radius:20px;
+}
+
+.review{
+  margin-bottom:10px;
+}
+
+/* Cart */
+.cart{
+  display:none;
+  background:linear-gradient(135deg,#fdfbfb,#ebedee);
+}
+
+.cart-item{
+  display:flex;
+  justify-content:space-between;
+  font-size:18px;
+  margin-bottom:15px;
+}
+
+/* Responsive */
+@media(max-width:768px){
+  .grid{
+    grid-template-columns:1fr;
+  }
+  header{
+    padding:20px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">DEVSHOKAT</div>
+  <div class="cart-icon" onclick="openCart()">
+    🛒
+    <span class="cart-count" id="cartCount">1</span>
+  </div>
+</header>
+
+<!-- PRODUCT PAGE -->
+<div class="container" id="productPage">
+
+  <div class="grid">
+    <div class="product-img">
+      <img src="https://m.media-amazon.com/images/I/2110TEYPKnL._SY300_SX300_QL70_FMwebp_.jpg" alt="Headphones">
+    </div>
+
+    <div>
+      <h1>Wireless Noise-Cancelling Headphones</h1>
+      <div class="price">₹17,990 </div>
+
+      <ul>
+        <li>🎧 Advanced noise cancellation for immersive sound</li>
+        <li>🔋 Up to 40 hours long-lasting battery life</li>
+        <li>🎶 Deep bass with crystal-clear audio</li>
+        <li>📱 Works with all Bluetooth devices</li>
+        <li>🧳 Lightweight & comfortable design</li>
+      </ul>
+
+      <button onclick="addToCart()">Add to Cart</button>
+
+      <div class="trust">
+        ✔ Free Shipping &nbsp; | &nbsp; ✔ Secure Checkout &nbsp; | &nbsp; ✔ Easy Returns
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Product Description</h3>
+    <p>
+      Enjoy premium wireless sound with powerful noise cancellation and long-lasting
+      battery life. Designed for comfort, performance, and everyday use—perfect
+      for music, calls, work, and travel.
+    </p>
+  </div>
+
+  <div class="section testimonials">
+    <h3>Customer Reviews</h3>
+    <div class="review">⭐⭐⭐⭐⭐ “Amazing sound quality and battery backup!” – Rahul K.</div>
+    <div class="review">⭐⭐⭐⭐⭐ “Very comfortable and stylish.” – Ananya S.</div>
+    <div class="review">⭐⭐⭐⭐⭐ “Best headphones for this price range.” – Arjun M.</div>
+  </div>
+
+</div>
+
+<!-- CART PAGE -->
+<div class="container cart" id="cartPage">
+  <h1>Your Cart</h1>
+
+  <div class="cart-item">
+    <span>Wireless Headphones</span>
+    <span>₹2,999</span>
+  </div>
+
+  <strong>Total: ₹2,999</strong>
+
+  <div class="section">
+    <button onclick="checkout()">Proceed to Checkout</button>
+  </div>
+</div>
+
+<script>
+let cartAdded = false;
+
+function addToCart(){
+  if(!cartAdded){
+    document.getElementById("cartCount").style.display = "block";
+    cartAdded = true;
+  }
+  document.getElementById("productPage").style.display = "none";
+  document.getElementById("cartPage").style.display = "block";
+}
+
+function openCart(){
+  if(cartAdded){
+    document.getElementById("productPage").style.display = "none";
+    document.getElementById("cartPage").style.display = "block";
+  }
+}
+
+function checkout(){
+  alert("Checkout enabled (Test Mode). Thank you!");
+}
+</script>
+
+</body>
+</html>

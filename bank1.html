@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MyBank - Online Banking</title>
+<style>
+body{
+    margin:0;
+    font-family: Arial, sans-serif;
+    background:#f4f9ff;
+}
+header{
+    background:#0a4da2;
+    color:white;
+    padding:15px;
+    text-align:center;
+}
+.container{
+    padding:20px;
+}
+.card{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+    margin-bottom:20px;
+}
+button{
+    background:#f5c400;
+    border:none;
+    padding:10px 15px;
+    border-radius:5px;
+    cursor:pointer;
+    font-weight:bold;
+}
+button:hover{background:#e0b000;}
+input{
+    width:100%;
+    padding:8px;
+    margin:5px 0 10px;
+}
+.menu button{
+    width:100%;
+    margin:5px 0;
+}
+.hidden{display:none;}
+.success{
+ width:120px;
+ height:120px;
+ margin:20px auto;
+ border-radius:50%;
+ background:#2ecc71;
+ color:white;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ font-size:60px;
+}
+@keyframes pop{
+ 0%{transform:scale(0.3);opacity:0}
+ 50%{transform:scale(1.2);opacity:1}
+ 100%{transform:scale(1)}
+}
+
+.success{
+ width:120px;
+ height:120px;
+ margin:20px auto;
+ border-radius:50%;
+ background:#2ecc71;
+ color:white;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ font-size:60px;
+ animation:pop 0.6s ease;
+}
+</style>
+</head>
+<body>
+
+<header>
+<h1>MyBank Online Banking</h1>
+</header>
+
+<div class="container">
+
+<!-- LOGIN -->
+<div class="card" id="loginCard">
+<h2>Login</h2>
+<input id="loginAcc" placeholder="Account Number">
+<input type="password" id="loginPin" placeholder="PIN">
+<button onclick="login()">Login</button>
+<p id="loginMsg"></p>
+</div>
+
+<!-- DASHBOARD -->
+<div class="hidden" id="dashboard">
+
+<div class="card">
+<h2>Welcome <span id="custName"></span></h2>
+<p>Account Number: <span id="custAcc"></span></p>
+<p>IFSC: <span id="custIfsc"></span></p>
+<p>Balance: ₹<span id="custBal"></span></p>
+</div>
+
+<div class="card menu">
+<button onclick="showSection('balanceDiv')">Check Balance</button>
+<button onclick="showSection('transferDiv')">Transfer to Account</button>
+<button onclick="showSection('upiDiv')">UPI Payment</button>
+<button onclick="showSection('withdrawDiv')">Withdraw</button>
+<button onclick="showSection('miniDiv')">Mini Statement</button>
+<button onclick="logout()">Logout</button>
+</div>
+
+<!-- BALANCE -->
+<div style="text-align:right"><button onclick="goHome()">Home</button></div>
+<div class="card hidden" id="balanceDiv">
+<h3>Your Balance</h3>
+<p>₹<span id="balShow"></span></p>
+</div>
+
+<!-- TRANSFER -->
+<div style="text-align:right"><button onclick="goHome()">Home</button></div>
+<div class="card hidden" id="transferDiv">
+<h3>Transfer Money</h3>
+<input id="toAcc" placeholder="To Account Number">
+<input type="number" id="transferAmt" placeholder="Amount">
+<button onclick="transfer()">Transfer</button>
+<p id="transferMsg"></p>
+</div>
+
+<!-- UPI -->
+<div style="text-align:right"><button onclick="goHome()">Home</button></div>
+<div class="card hidden" id="upiDiv">
+<h3>UPI Payment</h3>
+<input placeholder="UPI ID">
+<input type="number" id="upiAmt" placeholder="Amount">
+<button onclick="upiPay()">Pay</button>
+<p id="upiMsg"></p>
+</div>
+
+<!-- WITHDRAW -->
+<div style="text-align:right"><button onclick="goHome()">Home</button></div>
+<div class="card hidden" id="withdrawDiv">
+<h3>Withdraw</h3>
+<input type="number" id="withAmt" placeholder="Amount">
+<button onclick="withdraw()">Withdraw</button>
+<p id="withMsg"></p>
+</div>
+
+<!-- MINI STATEMENT -->
+<div style="text-align:right"><button onclick="goHome()">Home</button></div>
+<div class="card hidden" id="miniDiv">
+<h3>Last 10 Transactions</h3>
+<ul id="miniList"></ul>
+</div>
+
+</div>
+</div>
+
+<div id="successPopup" class="hidden card success">✔</div>
+<audio id="beep">
+<source src="https://www.soundjay.com/buttons/sounds/button-3.mp3">
+</audio>
+
+<script>
+// Create 20 accounts
+let accounts=[];
+for(let i=1;i<=20;i++){
+ accounts.push({
+  acc:1000+i,
+  pin:1234,
+  name:"User"+i,
+  ifsc:"MYBK000"+i,
+  balance:5000,
+  transactions:[]
+ });
+}
+
+let current=null;
+
+function login(){
+ let acc=loginAcc.value;
+ let pin=loginPin.value;
+ current=accounts.find(a=>a.acc==acc && a.pin==pin);
+ if(current){
+  loginCard.classList.add("hidden");
+  dashboard.classList.remove("hidden");
+  loadUser();
+ }else loginMsg.innerText="Invalid Login";
+}
+
+function loadUser(){
+ custName.innerText=current.name;
+ custAcc.innerText=current.acc;
+ custIfsc.innerText=current.ifsc;
+ custBal.innerText=current.balance;
+}
+
+function showSection(id){
+ document.querySelectorAll('.hidden').forEach(x=>{});
+ ['balanceDiv','transferDiv','upiDiv','withdrawDiv','miniDiv'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+ document.getElementById(id).classList.remove('hidden');
+ if(id=="balanceDiv") balShow.innerText=current.balance;
+ if(id=="miniDiv") showMini();
+}
+
+function time(){
+ return new Date().toLocaleString();
+}
+
+function playSuccess(){
+ document.getElementById('beep').play();
+ let pop=document.getElementById('successPopup');
+ pop.classList.remove('hidden');
+ setTimeout(()=>{pop.classList.add('hidden');goHome();},1200);
+}
+
+function transfer(){
+ let amt=Number(transferAmt.value);
+ let to=toAcc.value;
+ let receiver=accounts.find(a=>a.acc==to);
+ if(!receiver){transferMsg.innerText="Account Not Found";return;}
+ if(amt<=current.balance){
+  current.balance-=amt;
+  receiver.balance+=amt;
+  current.transactions.push("Transfer ₹"+amt+" to "+to+" | "+time());
+  receiver.transactions.push("Received ₹"+amt+" from "+current.acc+" | "+time());
+  transferMsg.innerText="Transfer Successful";
+  playSuccess();
+  loadUser();
+ }else transferMsg.innerText="Insufficient Balance";
+}
+
+function upiPay(){
+ let amt=Number(upiAmt.value);
+ if(amt<=current.balance){
+  current.balance-=amt;
+  current.transactions.push("UPI Pay ₹"+amt+" | "+time());
+  upiMsg.innerText="Paid";
+  playSuccess();
+  loadUser();
+ }else upiMsg.innerText="Insufficient Balance";
+}
+
+function withdraw(){
+ let amt=Number(withAmt.value);
+ if(amt<=current.balance){
+  current.balance-=amt;
+  current.transactions.push("Withdraw ₹"+amt+" | "+time());
+  withMsg.innerText="Withdrawn";
+  playSuccess();
+  loadUser();
+ }else withMsg.innerText="Insufficient Balance";
+}
+
+function showMini(){
+ miniList.innerHTML="";
+ current.transactions.slice(-10).forEach(t=>{
+  let li=document.createElement('li');
+  li.innerText=t;
+  miniList.appendChild(li);
+ });
+}
+
+function goHome(){
+ document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden'));
+ dashboard.classList.remove('hidden');
+}
+
+function logout(){location.reload();}
+</script>
+
+</body>
+</html>

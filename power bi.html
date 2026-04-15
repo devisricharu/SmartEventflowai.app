@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Aadhaar Enrolment Dashboard</title>
+
+<!-- CHART.JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #f4f6f9;
+}
+header {
+    background: #2c3e50;
+    color: white;
+    padding: 15px;
+    text-align: center;
+}
+.container {
+    padding: 20px;
+}
+.cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.card h2 {
+    margin: 0;
+    color: #2980b9;
+}
+.filters {
+    margin: 20px 0;
+    display: flex;
+    gap: 20px;
+}
+select {
+    padding: 8px;
+}
+.charts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+canvas {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+}
+table {
+    width: 100%;
+    margin-top: 20px;
+    background: white;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+th {
+    background: #2c3e50;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>Aadhaar Enrolment Dashboard</h1>
+<p>HTML + CSS + JavaScript (No Node.js)</p>
+</header>
+
+<div class="container">
+
+<!-- KPI CARDS -->
+<div class="cards">
+    <div class="card">
+        <h3>Total Enrolments</h3>
+        <h2 id="totalEnrol">0</h2>
+    </div>
+    <div class="card">
+        <h3>Age 0–5</h3>
+        <h2 id="age05">0</h2>
+    </div>
+    <div class="card">
+        <h3>Age 5–17</h3>
+        <h2 id="age517">0</h2>
+    </div>
+    <div class="card">
+        <h3>Age 18+</h3>
+        <h2 id="age18">0</h2>
+    </div>
+</div>
+
+<!-- FILTER -->
+<div class="filters">
+    <select id="stateFilter" onchange="updateDashboard()">
+        <option value="All">All States</option>
+    </select>
+</div>
+
+<!-- CHARTS -->
+<div class="charts">
+    <canvas id="stateChart"></canvas>
+    <canvas id="ageChart"></canvas>
+</div>
+
+<!-- TABLE -->
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>District</th>
+<th>Age 0–5</th>
+<th>Age 5–17</th>
+<th>Age 18+</th>
+<th>Total</th>
+</tr>
+</thead>
+<tbody id="dataTable"></tbody>
+</table>
+
+</div>
+
+<script>
+/* ================= BACKEND DATA (LOCAL STORAGE) ================= */
+
+const dataset = [
+    {state:"Tamil Nadu", district:"Chennai", a05:1200, a517:3400, a18:8200},
+    {state:"Tamil Nadu", district:"Coimbatore", a05:900, a517:2100, a18:6300},
+    {state:"Karnataka", district:"Bengaluru", a05:1500, a517:3800, a18:9100},
+    {state:"Karnataka", district:"Mysuru", a05:700, a517:1900, a18:4800},
+    {state:"Kerala", district:"Trivandrum", a05:800, a517:2200, a18:5600}
+];
+
+localStorage.setItem("aadhaarData", JSON.stringify(dataset));
+
+/* ================= LOAD DATA ================= */
+
+const data = JSON.parse(localStorage.getItem("aadhaarData"));
+
+/* ================= INITIALIZE ================= */
+
+const stateFilter = document.getElementById("stateFilter");
+
+[...new Set(data.map(d => d.state))].forEach(state => {
+    let option = document.createElement("option");
+    option.value = state;
+    option.textContent = state;
+    stateFilter.appendChild(option);
+});
+
+let stateChart, ageChart;
+
+function updateDashboard() {
+
+    const selectedState = stateFilter.value;
+    const filtered = selectedState === "All" ? data : data.filter(d => d.state === selectedState);
+
+    let total05 = 0, total517 = 0, total18 = 0;
+
+    filtered.forEach(d => {
+        total05 += d.a05;
+        total517 += d.a517;
+        total18 += d.a18;
+    });
+
+    document.getElementById("age05").textContent = total05;
+    document.getElementById("age517").textContent = total517;
+    document.getElementById("age18").textContent = total18;
+    document.getElementById("totalEnrol").textContent = total05 + total517 + total18;
+
+    // TABLE
+    const table = document.getElementById("dataTable");
+    table.innerHTML = "";
+    filtered.forEach(d => {
+        table.innerHTML += `
+        <tr>
+            <td>${d.state}</td>
+            <td>${d.district}</td>
+            <td>${d.a05}</td>
+            <td>${d.a517}</td>
+            <td>${d.a18}</td>
+            <td>${d.a05 + d.a517 + d.a18}</td>
+        </tr>`;
+    });
+
+    // STATE CHART
+    const states = [...new Set(filtered.map(d => d.state))];
+    const stateTotals = states.map(s =>
+        filtered.filter(d => d.state === s)
+        .reduce((sum, x) => sum + x.a05 + x.a517 + x.a18, 0)
+    );
+
+    if(stateChart) stateChart.destroy();
+    stateChart = new Chart(document.getElementById("stateChart"), {
+        type: "bar",
+        data: {
+            labels: states,
+            datasets: [{
+                label: "Total Enrolments",
+                data: stateTotals,
+                backgroundColor: "#3498db"
+            }]
+        }
+    });
+
+    // AGE PIE
+    if(ageChart) ageChart.destroy();
+    ageChart = new Chart(document.getElementById("ageChart"), {
+        type: "pie",
+        data: {
+            labels: ["0–5", "5–17", "18+"],
+            datasets: [{
+                data: [total05, total517, total18],
+                backgroundColor: ["#1abc9c","#f1c40f","#e74c3c"]
+            }]
+        }
+    });
+}
+
+updateDashboard();
+</script>
+
+</body>
+</html>

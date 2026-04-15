@@ -1,0 +1,599 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Civic AI Portal</title>
+
+<script src="https://maps.googleapis.com/maps/api/js"></script>
+
+<style>
+
+*{
+box-sizing:border-box;
+}
+
+body{
+margin:0;
+font-family:'Segoe UI',Arial;
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+color:white;
+}
+
+/* HEADER */
+
+header{
+text-align:center;
+padding:20px;
+font-size:24px;
+font-weight:bold;
+}
+
+/* GLASS CONTAINER */
+
+.container{
+width:95%;
+max-width:800px;
+margin:auto;
+padding:25px;
+margin-top:25px;
+border-radius:12px;
+background:rgba(255,255,255,0.1);
+backdrop-filter:blur(10px);
+box-shadow:0 8px 20px rgba(0,0,0,0.4);
+}
+
+/* INPUT */
+
+input,select,textarea{
+width:100%;
+padding:12px;
+margin-top:10px;
+border-radius:6px;
+border:none;
+outline:none;
+}
+
+/* BUTTON */
+
+button{
+width:100%;
+padding:12px;
+margin-top:10px;
+background:#ff9800;
+color:white;
+border:none;
+border-radius:6px;
+cursor:pointer;
+font-weight:bold;
+}
+
+button:hover{
+background:#ffb74d;
+}
+
+/* TABLE */
+
+table{
+width:100%;
+margin-top:15px;
+border-collapse:collapse;
+background:white;
+color:black;
+border-radius:8px;
+overflow:hidden;
+}
+
+th{
+background:#1a73e8;
+color:white;
+}
+
+th,td{
+padding:10px;
+border:1px solid #ddd;
+text-align:center;
+}
+
+/* MAP */
+
+#map{
+height:350px;
+margin-top:15px;
+border-radius:10px;
+}
+
+/* DASHBOARD */
+
+.dashboard{
+margin-top:20px;
+}
+
+.stat{
+background:white;
+color:black;
+padding:10px;
+margin-top:5px;
+border-radius:6px;
+}
+
+/* HIDDEN */
+
+.hidden{
+display:none;
+}
+
+/* WELCOME PAGE */
+
+#welcomePage{
+text-align:center;
+padding:70px 20px;
+}
+
+.title{
+font-size:45px;
+}
+
+.subtitle{
+font-size:18px;
+margin-top:10px;
+opacity:0.9;
+}
+
+.enterBtn{
+margin-top:25px;
+padding:15px 40px;
+font-size:20px;
+background:#ff9800;
+border:none;
+border-radius:30px;
+cursor:pointer;
+color:white;
+}
+
+.enterBtn:hover{
+transform:scale(1.1);
+background:#ffb74d;
+}
+
+/* FEATURES */
+
+.features{
+margin-top:40px;
+}
+
+.featureBox{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:20px;
+padding:20px;
+}
+
+.card{
+background:white;
+color:#333;
+padding:20px;
+border-radius:10px;
+transition:0.3s;
+}
+
+.card:hover{
+transform:translateY(-6px);
+box-shadow:0 10px 20px rgba(0,0,0,0.2);
+}
+
+/* STEPS */
+
+.steps{
+margin-top:50px;
+}
+
+.stepList{
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+gap:15px;
+margin-top:20px;
+}
+
+.step{
+background:#1a73e8;
+padding:15px 25px;
+border-radius:8px;
+}
+
+/* IMPORTANCE */
+
+.importance{
+margin-top:40px;
+max-width:700px;
+margin:auto;
+font-size:17px;
+line-height:1.6;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+The Smart Civic Issue Portal
+</header>
+
+<!-- WELCOME PAGE -->
+
+<div id="welcomePage">
+
+<h1 class="title">Smart Civic Issue Portal</h1>
+
+<p class="subtitle">
+Report civic problems and help improve your city infrastructure.
+</p>
+
+<button class="enterBtn" onclick="enterPortal()">Enter Portal</button>
+
+<div class="features">
+
+<h2>Our Facilities</h2>
+
+<div class="featureBox">
+
+<div class="card">
+<h3>📍 Smart Location Detection</h3>
+<p>Automatically detect location using GPS.</p>
+</div>
+
+<div class="card">
+<h3>📸 Image Upload</h3>
+<p>Upload photo evidence of issues.</p>
+</div>
+
+<div class="card">
+<h3>🤖 AI Issue Detection</h3>
+<p>AI identifies road or sanitation problems.</p>
+</div>
+
+<div class="card">
+<h3>📊 Government Monitoring</h3>
+<p>Authorities track and resolve issues.</p>
+</div>
+
+</div>
+
+</div>
+
+<div class="steps">
+
+<h2>How to Report an Issue</h2>
+
+<div class="stepList">
+
+<div class="step">1️⃣ Login</div>
+<div class="step">2️⃣ Select Issue</div>
+<div class="step">3️⃣ Detect Location</div>
+<div class="step">4️⃣ Submit Complaint</div>
+<div class="step">5️⃣ Track Status</div>
+
+</div>
+
+</div>
+
+<div class="importance">
+
+<h2>Why This Portal is Important</h2>
+
+<p>
+This platform connects citizens with government authorities.
+It improves transparency and helps resolve civic issues faster.
+</p>
+
+</div>
+
+</div>
+
+<!-- LOGIN PAGE -->
+
+<div class="container hidden" id="loginPage">
+
+<h2>Login</h2>
+
+<input id="username" placeholder="Username">
+<input id="password" type="password" placeholder="Password">
+
+<button onclick="login()">Login</button>
+
+</div>
+
+<!-- CITIZEN PAGE -->
+
+<div class="container hidden" id="citizenPage">
+
+<h2>Raise Complaint</h2>
+
+<form id="form">
+
+<input id="name" placeholder="Your Name">
+
+<select id="issue">
+<option>Pothole</option>
+<option>Garbage</option>
+<option>Streetlight</option>
+<option>Water Leakage</option>
+<option>Drainage</option>
+</select>
+
+<textarea id="desc" placeholder="Describe issue"></textarea>
+
+<input id="location" placeholder="Lat,Lng">
+
+<button type="button" onclick="getLocation()">Detect Location</button>
+
+<button type="submit">Submit Complaint</button>
+
+</form>
+
+<h3>Your Complaints</h3>
+
+<table>
+
+<tr>
+<th>ID</th>
+<th>Issue</th>
+<th>Status</th>
+</tr>
+
+<tbody id="citizenComplaints"></tbody>
+
+</table>
+
+<div id="map"></div>
+
+</div>
+
+<!-- ADMIN PAGE -->
+
+<div class="container hidden" id="adminPage">
+
+<h2>Admin Dashboard</h2>
+
+<table>
+
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Issue</th>
+<th>Status</th>
+<th>Update</th>
+</tr>
+
+<tbody id="adminComplaints"></tbody>
+
+</table>
+
+<div class="dashboard">
+
+<h3>Analytics</h3>
+
+<div class="stat" id="total">Total Complaints: 0</div>
+<div class="stat" id="road">Road Issues: 0</div>
+<div class="stat" id="sanitation">Garbage Issues: 0</div>
+
+</div>
+
+</div>
+
+<script>
+
+let currentUser=""
+let map
+let markers=[]
+
+function enterPortal(){
+
+document.getElementById("welcomePage").style.display="none"
+document.getElementById("loginPage").style.display="block"
+
+}
+
+function login(){
+
+let u=document.getElementById("username").value
+let p=document.getElementById("password").value
+
+document.getElementById("loginPage").style.display="none"
+
+if(u==="admin" && p==="admin123"){
+
+document.getElementById("adminPage").style.display="block"
+loadAdmin()
+
+}else{
+
+currentUser=u
+document.getElementById("citizenPage").style.display="block"
+initMap()
+loadCitizen()
+
+}
+
+}
+
+function getLocation(){
+
+navigator.geolocation.getCurrentPosition(function(pos){
+
+let lat=pos.coords.latitude
+let lng=pos.coords.longitude
+
+document.getElementById("location").value=lat+","+lng
+
+})
+
+}
+
+function initMap(){
+
+map=new google.maps.Map(document.getElementById("map"),{
+center:{lat:20.5937,lng:78.9629},
+zoom:5
+})
+
+loadMarkers()
+
+}
+
+document.getElementById("form").addEventListener("submit",function(e){
+
+e.preventDefault()
+
+let issue=document.getElementById("issue").value
+let location=document.getElementById("location").value
+
+let data=JSON.parse(localStorage.getItem("complaints"))||[]
+
+let complaint={
+id:Date.now(),
+user:currentUser,
+name:document.getElementById("name").value,
+issue:issue,
+location:location,
+status:"Pending"
+}
+
+data.push(complaint)
+
+localStorage.setItem("complaints",JSON.stringify(data))
+
+alert("Complaint submitted")
+
+loadCitizen()
+loadMarkers()
+
+this.reset()
+
+})
+
+function loadCitizen(){
+
+let data=JSON.parse(localStorage.getItem("complaints"))||[]
+
+let table=""
+
+data.forEach(c=>{
+
+if(c.user===currentUser){
+
+table+=`
+<tr>
+<td>${c.id}</td>
+<td>${c.issue}</td>
+<td>${c.status}</td>
+</tr>
+`
+
+}
+
+})
+
+document.getElementById("citizenComplaints").innerHTML=table
+
+}
+
+function loadAdmin(){
+
+let data=JSON.parse(localStorage.getItem("complaints"))||[]
+
+let table=""
+
+let road=0
+let sanitation=0
+
+data.forEach((c,i)=>{
+
+if(c.issue==="Pothole") road++
+if(c.issue==="Garbage") sanitation++
+
+table+=`
+
+<tr>
+<td>${c.id}</td>
+<td>${c.name}</td>
+<td>${c.issue}</td>
+<td>${c.status}</td>
+
+<td>
+
+<select onchange="updateStatus(${i},this.value)">
+<option>Pending</option>
+<option>In Progress</option>
+<option>Resolved</option>
+</select>
+
+</td>
+
+</tr>
+
+`
+
+})
+
+document.getElementById("adminComplaints").innerHTML=table
+
+document.getElementById("total").innerText="Total Complaints: "+data.length
+document.getElementById("road").innerText="Road Issues: "+road
+document.getElementById("sanitation").innerText="Garbage Issues: "+sanitation
+
+}
+
+function updateStatus(index,status){
+
+let data=JSON.parse(localStorage.getItem("complaints"))
+
+data[index].status=status
+
+localStorage.setItem("complaints",JSON.stringify(data))
+
+loadAdmin()
+
+}
+
+function loadMarkers(){
+
+if(!map) return
+
+markers.forEach(m=>m.setMap(null))
+markers=[]
+
+let data=JSON.parse(localStorage.getItem("complaints"))||[]
+
+data.forEach(c=>{
+
+let coords=c.location.split(",")
+
+if(coords.length===2){
+
+let lat=parseFloat(coords[0])
+let lng=parseFloat(coords[1])
+
+let marker=new google.maps.Marker({
+position:{lat,lng},
+map:map,
+title:c.issue
+})
+
+markers.push(marker)
+
+}
+
+})
+
+}
+
+</script>
+
+</body>
+</html>
+

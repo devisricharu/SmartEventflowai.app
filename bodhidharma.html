@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bodhidharma | Scroll Story</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Poppins',sans-serif;background:#000;color:#f5f5f5;overflow-x:hidden}
+
+/* GLOBAL */
+section{min-height:100vh;position:relative;display:flex;align-items:center;justify-content:center;padding:80px}
+.overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.65);z-index:1}
+.content{position:relative;z-index:2;max-width:900px}
+h1,h2{font-family:'Cinzel',serif;letter-spacing:2px}
+h1{font-size:3.5rem}
+h2{font-size:2.5rem;margin-bottom:20px}
+p{font-size:1.15rem;line-height:1.9;opacity:.95}
+
+/* HERO WITH VIDEO */
+.hero video{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
+.hero{text-align:center}
+.hero p{margin-top:20px;font-style:italic}
+
+/* IMAGE BACKGROUND SECTIONS */
+.bg-img{background-size:cover;background-position:center;background-attachment:fixed}
+
+/* TIMELINE */
+.timeline{border-left:3px solid #777;padding-left:30px}
+.timeline div{margin-bottom:30px}
+.timeline span{color:#c9a24d;font-weight:500}
+
+/* MAP */
+.map{display:flex;justify-content:space-around;align-items:center;font-size:1.3rem;margin-top:30px}
+.map div{background:rgba(255,255,255,.08);padding:20px 30px;border-radius:12px}
+
+/* FOOTER */
+footer{text-align:center;padding:30px;background:#000;opacity:.8}
+</style>
+</head>
+<body>
+
+<!-- INTRO VIDEO -->
+<section class="hero">
+  <video autoplay muted loop>
+    <!-- Replace with Bodhidharma cinematic video -->
+    <source src="bodhidharma_intro.mp4" type="video/mp4">
+  </video>
+  <div class="overlay"></div>
+  <div class="content">
+    <h1>BODHIDHARMA</h1>
+    <p>"Pallava Prince → Zen Legend"</p>
+    <p>Oru manushan illa… oru yugam.</p>
+  </div>
+</section>
+
+<!-- ORIGIN -->
+<section class="bg-img" style="background-image:url('bodhidharma_origin.jpg')">
+  <div class="overlay"></div>
+  <div class="content">
+    <h2>Origin – Pallava Dynasty</h2>
+    <p>Bodhidharma South India-la pirandhavar. Pala varalaaru sources-la avar Pallava king-oda magan nu sollapadugiradhu. Royal life, power, luxury ellam irundhaalum, avar spirituality-ai thaan choose panninar.</p>
+  </div>
+</section>
+
+<!-- JOURNEY -->
+<section class="bg-img" style="background-image:url('bodhidharma_journey.jpg')">
+  <div class="overlay"></div>
+  <div class="content">
+    <h2>Journey – India to China</h2>
+    <p>India-la irundhu China varai Bodhidharma thaniya travel panninar. Kadal vazhi, malaigal, pasi, thanimai – ellathaiyum face pannina oru spiritual mission idhu.</p>
+    <div class="map">
+      <div>🇮🇳 South India</div>
+      <div>➡️</div>
+      <div>🌊 Sea Route</div>
+      <div>➡️</div>
+      <div>🇨🇳 China</div>
+    </div>
+  </div>
+</section>
+
+<!-- SHAOLIN -->
+<section class="bg-img" style="background-image:url('bodhidharma_shaolin.jpg')">
+  <div class="overlay"></div>
+  <div class="content">
+    <h2>Shaolin & Meditation</h2>
+    <p>Shaolin Temple-la Bodhidharma 9 varusham wall-ai paathu meditation panninar nu legends sollugiradhu. Monks-oda body weak-aagudhu-nu purindhu, mind + body balance-kaga physical discipline introduce panninar.</p>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section class="bg-img" style="background-image:url('bodhidharma_timeline.jpg')">
+  <div class="overlay"></div>
+  <div class="content">
+    <h2>Life Timeline</h2>
+    <div class="timeline">
+      <div><span>5th Century:</span> Pallava prince-aa pirandhar</div>
+      <div><span>Youth:</span> Royal life-ai thurandhu monk aanaar</div>
+      <div><span>Travel:</span> India → China journey</div>
+      <div><span>Shaolin:</span> 9 years meditation</div>
+      <div><span>Legacy:</span> Zen Buddhism foundation</div>
+    </div>
+  </div>
+</section>
+
+<!-- DEATH -->
+<section class="bg-img" style="background-image:url('bodhidharma_death.jpg')">
+  <div class="overlay"></div>
+  <div class="content">
+    <h2>Death & Mystery</h2>
+    <p>Bodhidharma epdi marainthaar nu clear record illa. Sila legends-la avar oru shoe mattum thooki India thirumba nadandhu ponar nu sollugiraargal. Tomb empty-aa irundhadhala, avar immortal nu nambinaargal.</p>
+  </div>
+</section>
+
+<!-- LEGACY -->
+<section class="bg-img" style="background-image:url('bodhidharma_legacy.jpg')">
+  <div class="overlay"></div>
+  <div class="content">
+    <h2>Legacy</h2>
+    <p>Zen Buddhism, Shaolin culture, martial arts philosophy – ellathukum Bodhidharma oru strong foundation. India-um China-um connect panna oru living bridge avar.</p>
+  </div>
+</section>
+
+<footer>
+  <p>College Project | Designed & Developed by Sri</p>
+</footer>
+
+</body>
+</html>
